@@ -2,13 +2,14 @@ require_relative "lib/puppy_breeder.rb"
 #require "pry-byebug"
 
 class TerminalClient
-	@@purchase_list=PuppyBreeder::Purchase_list.new
-	@@puppy_list=PuppyBreeder::Puppy_list.new
-	@@breeder_list={}
+
 	def initialize
 		@request=""
 		@breeder=""
 		@new_customer=""
+		@purchase_list=PuppyBreeder::Purchase_list.new
+	    @puppy_list=PuppyBreeder::Puppy_list.new
+	    @breeder_list={}
 	end
 	def start
 		puts ""
@@ -52,26 +53,22 @@ class TerminalClient
 	def create_customer(name)
 		@new_customer=PuppyBreeder::Customer.new(name)
 		puts "Dear #{name}, here's the list of all the available puppies."
-		puts @@puppy_list.list
+		puts @puppy_list.list
 		puts ""
 		puts 'You can make your purchase request based on a breed now.'
 		breed=gets.chomp
-		if @@puppy_list.list.values.join(" ").include?(breed)
-            @request = PuppyBreeder::PurchaseRequest.new(name,breed)
-		    @@purchase_list.list[@request.customer]=@request.breed
-		    puts "Successfully add a new purchase request!"
-	    else
-		    puts "Sorry, we don't have this breed you are looking for right now."
-	    end
+        @request = PuppyBreeder::PurchaseRequest.new(name,breed)
+	    @purchase_list.add(@request)
+	    puts "Successfully add a new purchase request!"
 	    self.start		
 	end
 	def create_breeder(name)
-		if @@breeder_list.keys.include?(name)
+		if @breeder_list.keys.include?(name)
 			puts "#{name}, welcome back!"
-			@breeder=@@breeder_list[name]
+			@breeder=@breeder_list[name]
 		else
-			@@breeder_list[name]=PuppyBreeder::Breeder.new(name)
-			@breeder=@@breeder_list[name]
+			@breeder_list[name]=PuppyBreeder::Breeder.new(name)
+			@breeder=@breeder_list[name]
 			puts "Successfully created a new breeder!"
 		end
 		start_breeder
@@ -87,6 +84,7 @@ class TerminalClient
 		puts "add puppy -- add new puppies for sale."
 		puts "review purchase request and accept -- review purchase requests and accept new purchase requests."
 		puts "view -- view all the completed requests."
+		puts "on hold requests -- view all the requests that are on hold."
 		puts "exit breeder -- Exit the Breeder Manager."
 		get_breeder_command
 	end
@@ -106,24 +104,30 @@ class TerminalClient
 			puts "Please input the puppy's age:"
 			age=gets.chomp.to_i
 			@breeder.add_puppy(name,breed,age)
-			@@puppy_list.add(@breeder.puppy)
+			@puppy_list.add(@breeder.puppy)
 			puts "Puppy added successfully!"
 			self.start_breeder
 		when "review"
-			@breeder.purchase_list=@@purchase_list
+			@breeder.purchase_list=@purchase_list
 			@breeder.generate_request
 			puts "Here's the purchase list:"
 			puts @breeder.purchase_request
 			puts "Please choose the request you want to accept by the customer's name:"
 			customer=gets.chomp
 			@breeder.accept_requests(customer)
-			@@purchase_list.remove(customer)
-			@@puppy_list.remove(@breeder.completed_request[customer][0])
+			@purchase_list.remove(customer)
+			@puppy_list.remove(@breeder.completed_request[customer][0])
 			puts "Successfully sold #{@breeder.completed_request[customer][0]} to #{customer}!"
 			self.start_breeder
 		when "view"
 			puts "Here's the completed request list:"
 			puts @breeder.completed_request
+			self.start_breeder
+		when "on"
+			puts "Here's the on hold requests list:"
+			@breeder.purchase_list=@purchase_list
+			@breeder.generate_request
+			puts @breeder.on_hold_request
 			self.start_breeder
 		when "exit"
 			self.start
