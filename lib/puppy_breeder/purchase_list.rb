@@ -6,7 +6,7 @@ module PuppyBreeder
 			@completed_list={}
 		end
 		def add(request)
-			@list[request.customer]=[request.breeder,request.puppy,request.price]
+			@list[request.customer]=request.breed
 		end
 		def remove(customer)
 			@completed_list[customer]=@list[customer]

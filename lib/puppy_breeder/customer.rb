@@ -6,8 +6,8 @@ module PuppyBreeder
   	def initialize(name)
   		@name=name
   	end
-  	def make_request(breeder,puppy,price)
-  		@request=PuppyBreeder::PurchaseRequest.new(self.name,puppy.name,price,breeder.name)
+  	def make_request(breed)
+  		@request=PuppyBreeder::PurchaseRequest.new(self.name,breed)
   	end
   end
 end

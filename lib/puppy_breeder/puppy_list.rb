@@ -4,11 +4,11 @@ module PuppyBreeder
 		def initialize
 			@list={}
 		end
-		def add(name,age)
-			@list[name]=age
+		def add(puppy)
+			@list[puppy.name]=[puppy.breed,puppy.age,puppy.price]
 		end
-		def remove(name)
-			@list.delete(name)
+		def remove(puppy)
+			@list.delete(puppy)
 		end
 	end
 end
