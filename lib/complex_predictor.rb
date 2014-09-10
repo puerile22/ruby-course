@@ -1,10 +1,23 @@
 require_relative 'predictor'
-require 'pry'
+#require 'pry'
 class ComplexPredictor < Predictor
   # Public: Trains the predictor on books in our dataset. This method is called
   # before the predict() method is called.
   #
   # Returns nothing.
+
+
+  #def train!
+  #  @goal=50
+  #  @limit=4
+  #  @data={}
+  #end
+
+
+
+
+
+
   def train!
     @data = {}
     @big_data={}
@@ -14,14 +27,17 @@ class ComplexPredictor < Predictor
     @all_books.each do |category, books|
       @data[category]={}
       books.each do |filename, tokens|
-        tokens.each do |word|
-          @word_frequency[word]+=1 if good_token?(word)
+        (tokens.length/10..tokens.length/5).each do |word|
+        #tokens.each do |word|
+          @word_frequency[tokens[word]]+=1 if good_token?(tokens[word])
+          #@word_frequency[word]+=1 if good_token?(word)
         end
-        #@data[category][filename][:words] += tokens.count
         @word_frequency.each do |word,count|
-          @word_frequency[word]=count/tokens.count.to_f
+          @word_frequency[word]=(count/tokens.count.to_f)*10
+          #@word_frequency[word]=count/tokens.count.to_f
         end
-        @most_frequent_word=Hash[@word_frequency.sort_by{|k,v| v}.reverse[0..99]]
+        @most_frequent_word=Hash[@word_frequency.sort_by{|k,v| v}.reverse[0..19]]
+        #@most_frequent_word=Hash[@word_frequency.sort_by{|k,v| v}.reverse[0..99]]
         @data[category][filename] = @most_frequent_word
         #binding.pry
         @word_frequency=Hash.new(0)
@@ -42,8 +58,8 @@ class ComplexPredictor < Predictor
         end
       end
       @sd[category].each do |word,freqs|
-        @super_data<<{word=>freqs} if freqs.length > 4
-        break if @super_data.count>60
+        @super_data<<{word=>freqs} if freqs.length > 1
+        break if @super_data.count>80
       #@super_data.each do |k,v|
         #@super_data[k] = v/x.count
       end
@@ -71,12 +87,12 @@ class ComplexPredictor < Predictor
   # Returns a category.
   def predict(tokens)
     @word_frequency=Hash.new(0)
-    #(0..tokens.length/10).each do |i|
-    #  @word_frequency[tokens[i]]+=1/tokens.length.to_f/10
-    #end
-    tokens.each do |word|
-      @word_frequency[word]+=1/tokens.length.to_f if good_token?(word)
+    (tokens.length/10..tokens.length/5).each do |i|
+      @word_frequency[tokens[i]]+=(1/tokens.length.to_f)*10
     end
+    #tokens.each do |word|
+    #  @word_frequency[word]+=1/tokens.length.to_f if good_token?(word)
+    #end
     #binding.pry
 
     list={}
@@ -84,7 +100,7 @@ class ComplexPredictor < Predictor
     @big_data.each do |category,words|
       count=0
       words.each do |word,stats|
-        if @word_frequency[word]!=0 && (@word_frequency[word]>=stats[0]-2*stats[1] && @word_frequency[word]<=stats[0]+2*stats[1])
+        if @word_frequency[word]!=0 && @word_frequency[word]>=stats[0]-3*stats[1] && @word_frequency[word]<=stats[0]+3*stats[1]
           count+=1
         end
       end
@@ -92,8 +108,9 @@ class ComplexPredictor < Predictor
       #binding.pry
         #return category if count>words.length/2
     end
-
+#binding.pry
     Hash[list.sort_by{|k,v| v}.reverse].keys.first
   end
+#=end
 end
 
